@@ -292,7 +292,7 @@ let name*: char[_] = "hello";
 [2] *Syntax:*
 
 > *type-declaration:*
-> &nbsp;&nbsp; `type` *identifier* *visibility-modifier*_opt *pragma*_opt `=` *type* `;`
+> &nbsp;&nbsp; `type` *identifier* *visibility-modifier*_opt *generic-parameter-list*_opt *pragma*_opt `=` *type* `;`
 
 ---
 
