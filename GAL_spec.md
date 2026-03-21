@@ -257,7 +257,7 @@ a raw string
 [2] *Syntax:*
 
 > *variable-declaration:*
-> &nbsp;&nbsp; *declaration-keyword* *identifier* *visibility-modifier*_opt *pragma*_opt *type-annotation*_opt *initializer*_opt `;`
+> &nbsp;&nbsp; *declaration-keyword* *identifier* *visibility-modifier*_opt *generic-parameter-list*_opt *pragma*_opt *type-annotation*_opt *initializer*_opt `;`
 >
 > *declaration-keyword:* one of
 > &nbsp;&nbsp; `const` `let` `var`
