@@ -714,7 +714,7 @@ fn swap<T>(a: ref T, b: ref T): void
     b = tmp;
 }
 
-fn sum<T...>(args: T[]): intd
+fn sum<T...>(args: T[_]): intd
 {
     var total: intd = 0;
     for v, args { total += intd(v); }
