@@ -155,8 +155,8 @@ range-expression:
 pointer-type:
     ptr type-qualifier_opt type
 
-addr-expression:
-    addr ( expression )
+addrof-expression:
+    addrof ( expression )
 
 reference-type:
     ref type-qualifier_opt type
