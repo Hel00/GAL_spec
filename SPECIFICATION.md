@@ -1135,6 +1135,8 @@ let c: char = cast<char>(x);
 
 [5] If both a field of an object and a UFCS-eligible free function share the same name for a given type, and the call is syntactically ambiguous, the program is ill-formed.
 
+[6] A modified call with no arguments shall use parenthesized form: `expression.identifier()`. The split form requires at least one argument.
+
 [6] *Example:*
 ```
 fn sum(x: intd, y: intd, z: intd): intd { return x + y + z; }
