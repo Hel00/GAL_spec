@@ -225,6 +225,7 @@ a raw string
 > &nbsp;&nbsp; `auto`
 > &nbsp;&nbsp; `_`
 > &nbsp;&nbsp; `void`
+> &nbsp;&nbsp; `type`
 > &nbsp;&nbsp; *identifier*
 >
 > *fundamental-type:* one of
@@ -398,12 +399,12 @@ let (a, _, c): (intd, _, char) = multiReturn();
 
 ### 11.1 Arrays [basic.array.general]
 
-[1] An array is a fixed-length, contiguous sequence of elements of a single type. An array carries a `.len` member of type `usize` equal to the number of elements. The address of an array is immutable. The mutability of elements is governed by the declaration keyword and type qualifier of the enclosing binding. Arrays are not implicitly null-terminated.
+[1] An array is a fixed-length, contiguous sequence of elements of a single type. The address of an array is immutable. The mutability of elements is governed by the declaration keyword and type qualifier of the enclosing binding. Arrays are not implicitly null-terminated.
 
 [2] *Syntax:*
 
 > *array-type:*
-> &nbsp;&nbsp; *type* `[` *array-size* `]`
+> &nbsp;&nbsp; `[` *type* `,` *array-size* `]`
 >
 > *array-size:*
 > &nbsp;&nbsp; *expression*
@@ -415,8 +416,8 @@ let (a, _, c): (intd, _, char) = multiReturn();
 
 [5] *Example:*
 ```
-let name: char[_] = "hello";
-let nums: intd[_] = [1, 2, 3];
+let name: [char, _] = "hello";
+let nums: [intd, _] = [1, 2, 3];
 ```
 
 ### 11.2 Ranges [basic.array.range]
