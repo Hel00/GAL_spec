@@ -283,8 +283,8 @@ a raw string
 const max: usize = 100;
 let x: intd = 42;
 var y = 3.14;
-let xPtr: ptr mut intd = addr(x);
-let name*: char[_] = "hello";
+let xPtr: ptr mut intd = addrof(x);
+let name*: [char, _] = "hello";
 ```
 
 ### 7.2 Type Declarations [dcl.type]
