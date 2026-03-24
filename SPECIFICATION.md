@@ -34,7 +34,7 @@
 27. Operator Precedence [expr.prec]
 28. Pragmas [dcl.pragma]
 29. Inline Assembly [stmt.asm]
-30. Reflection and Query Symbols [over.reflect]
+30. Built-in Functions [over.reflect]
 31. Value Categories [expr.cat]
 32. Name Lookup [basic.lookup]
 33. Expressions [expr.types]
@@ -108,7 +108,7 @@
 [1] The following identifiers are reserved as keywords and shall not be used as user-defined identifiers:
 
 ```
-addr     alias    alignof  asm      auto     bool     break    case
+addrof   alias    alignof  asm      auto     bool     break    case
 cast     char     const    continue elif     else     enum     fieldof
 fn       for      goto     if       imut     import   include  identof
 label    lenof    let      mixin    mut      object   offsetof ptr
@@ -143,7 +143,7 @@ typeof   val      var      void
 
 [7] Escape sequences produce the corresponding character value; \0 produces the character with value zero (0x00).
 
-[8] A raw string literal is delimited by `"""` on both sides. No escape sequences are processed within a raw string literal; all characters are taken as-is including newlines. A raw string literal has no intrinsic type and follows the same usage rules as a regular string literal. It is ill-formed for the sequence """ to appear within a raw string literal.
+[8] A raw string literal is delimited by `"""` on both sides. No escape sequences are processed within a raw string literal; all characters are taken as-is including newlines. A raw string literal has no intrinsic type and follows the same usage rules as a regular string literal. It is ill-formed for the sequence `"""` to appear within a raw string literal.
 
 [9] *Example:*
 ```
@@ -208,7 +208,17 @@ a raw string
 
 [1] The type `char` represents a single character. Its width is implementation-defined.
 
-### 5.6 Type Syntax [basic.types.syntax]
+### 5.6 The `type` Type [basic.types.type]
+
+[1] `type` is a first-class type whose values are types. A binding of type `type` holds a type as its value. `type` is the default type annotation for generic parameters ([dcl.fct.generic]).
+
+[2] *Example:*
+```
+type MyInt: type = intq;
+const T: type = floatd;
+```
+
+### 5.7 Type Syntax [basic.types.syntax]
 
 [1] *Syntax:*
 
@@ -306,7 +316,7 @@ let name*: [char, _] = "hello";
 
 [2] As a *type*, `_` instructs the compiler to generate no assembly for the declared value, regardless of the identifier used. The value is not materialized at runtime.
 
-[3] As an *identifier* in a variable declaration, `_` makes the binding inaccessible; the value cannot be read or written after declaration, regardless of the type. If the type is not _, assembly is still generated for the value even though it is inaccessible.
+[3] As an *identifier* in a variable declaration, `_` makes the binding inaccessible; the value cannot be read or written after declaration, regardless of the type. If the type is not `_`, assembly is still generated for the value even though it is inaccessible.
 
 [4] As an *array-size* expression, `_` instructs the compiler to deduce the array length from the initializer ([basic.array]).
 
@@ -464,7 +474,7 @@ xPtr[0] = 2;
 
 ### 12.2 The `addrof` Function [basic.compound.addr]
 
-[1] `addrof` is a built-in function that yields the address of its operand as a pointer of the appropriate type. `addrof` shall not be overloaded.
+[1] `addrof` is a built-in function that yields the address of its operand as a pointer of the appropriate type. `addrof` shall not be overloaded. See ([over.reflect]) for the full list of built-in functions.
 
 [2] The operand of `addrof` shall be an lvalue.
 
@@ -694,7 +704,7 @@ let y = intd(3.14);   // truncates to intd
 
 ### 16.4 Generics [dcl.fct.generic]
 
-[1] Generic parameters are implicitly `const` and may appear anywhere a type is permitted in the function signature or body. A generic parameter's type annotation is optional and defaults to `type`. GAL generics follow the same rules as C++ templates.
+[1] Generic parameters are implicitly `const` and may appear anywhere a type is permitted in the function signature or body. A generic parameter's type annotation is optional and defaults to `type` ([basic.types.type]). GAL generics follow the same rules as C++ templates.
 
 [2] A generic parameter with a default type shall not precede a generic parameter without a default type. A variadic generic parameter shall be the last in the *generic-parameter-list* and is declared by annotating the parameter with an array type of deduced size. Variadic arguments may be iterated as an array.
 
@@ -764,16 +774,11 @@ template fn repeat(times: usize)
 
 ## 18 Mixins [dcl.mixin]
 
-[1] A mixin converts a string expression to a sequence of GAL tokens and inserts those tokens at the point of the mixin statement.
+[1] `mixin` is a built-in function that converts a string expression to a sequence of GAL tokens and inserts those tokens at the point of the call.
 
-[2] *Syntax:*
+[2] The operand shall evaluate to a value of type `[char, N]` for some `N`. The resulting token sequence shall be syntactically valid in the context of the insertion point.
 
-> *mixin-statement:*
-> &nbsp;&nbsp; `mixin` `(` *expression* `)` `;`
-
-[3] The operand shall evaluate to a value of type `char[N]` for some `N`. The resulting token sequence shall be syntactically valid in the context of the insertion point.
-
-[4] *Example:*
+[3] *Example:*
 ```
 mixin("let x = 1;");
 
@@ -799,7 +804,6 @@ mixin(src);
 > &nbsp;&nbsp; *case-statement*
 > &nbsp;&nbsp; *label-declaration*
 > &nbsp;&nbsp; *goto-statement*
-> &nbsp;&nbsp; *mixin-statement*
 > &nbsp;&nbsp; *return-statement*
 > &nbsp;&nbsp; *break-statement*
 > &nbsp;&nbsp; *continue-statement*
@@ -873,9 +877,9 @@ mixin(src);
 
 [3] The simple while repeatedly evaluates its condition and executes the body as long as the condition is non-zero. The three-part while executes the initializer once, then repeatedly checks the condition and executes the body followed by the update expression.
 
-[4] In a `for` statement, the *element-binding* and the iterated *expression* are mandatory. The *for-index* may be omitted. `_` in any binding position discards that binding. If both for-index and element-binding are _, the loop iterates over the expression without binding either. If a declaration-keyword is absent from a for-index or element-binding, the binding is implicitly let.
+[4] In a `for` statement, the *element-binding* and the iterated *expression* are mandatory. The *for-index* may be omitted. `_` in any binding position discards that binding. If both for-index and element-binding are `_`, the loop iterates over the expression without binding either. If a declaration-keyword is absent from a for-index or element-binding, the binding is implicitly `let`.
 
-[5] The for statement evaluates the iterated expression once to obtain a sequence. If the expression returns a (T, usize) tuple via a for overload ([over.for]), the body executes usize times, binding each element in turn. If T is ptr U, the element advances by sizeof<U>() bytes per iteration; otherwise by sizeof<T>(). If the iterated expression is an array, the body executes `lenof` times.
+[5] The for statement evaluates the iterated expression once to obtain a sequence. If the expression returns a `(T, usize)` tuple via a for overload ([over.for]), the body executes `usize` times, binding each element in turn. If `T` is `ptr U`, the element advances by `sizeof<U>()` bytes per iteration; otherwise by `sizeof<T>()`. If the iterated expression is an array, the body executes `lenof(array)` times.
 
 [6] The following declarations are equivalent:
 ```
@@ -946,7 +950,7 @@ goto 0xDEADBEEF;
 
 [6] *Note 1: The `case` statement is built on the label and goto mechanisms ([stmt.label]). Labels within a `case` body are local to that body.*
 
-[7] A case body shall contain at most one label _: arm. A case body with no labels is valid and transfers control past the case statement.
+[7] A case body shall contain at most one `label _:` arm. A case body with no labels is valid and transfers control past the case statement.
 
 [8] *Example:*
 ```
@@ -1151,7 +1155,7 @@ let splitmethod = 1.sum 2, 3;
 | Level | Operators | Associativity |
 |-------|-----------|---------------|
 | 1 | `()` `[]` `.` `->` `::` | L |
-| 2 | Unary `!` unary `-` unary `+` `addr` `cast` | R |
+| 2 | Unary `!` unary `-` unary `+` `addrof` `cast` | R |
 | 3 | `*` `/` `%` | L |
 | 4 | `+` `-` | L |
 | 5 | `..` | L |
@@ -1201,6 +1205,7 @@ type Flags = object {
   active* [.bit: set(1).]: uintb = 0;
 };
 ```
+
 ### 28.2 Standalone Pragmas [dcl.pragma.standalone]
 
 [1] The following pragmas take no arguments:
@@ -1242,7 +1247,8 @@ type Flags = object {
 ### 28.5 Specifier-Expression Pragmas [dcl.pragma.specexpr]
 
 [1] The following pragmas take both a specifier and an expression:
-- `[.bit: get(` *type* `).]` — initializes the declared variable with the bit size of the given type. The declared variable shall be of type usize and shall not have an initializer. Evaluated at compile time.
+
+- `[.bit: get(` *type* `).]` — initializes the declared variable with the bit size of the given type. The declared variable shall be of type `usize` and shall not have an initializer. Evaluated at compile time.
 - `[.bit: set(` *N* `).]` — constrains a field to occupy exactly *N* bits within its containing object.
 
 [2] *Example:*
@@ -1279,7 +1285,7 @@ let bitSize [.bit: get(intd).]: usize;
 > *asm-operand:*
 > &nbsp;&nbsp; *expression*
 
-[3] The *asm-string* shall evaluate to a value of type `char[N]`. The operand format follows the GAS extended inline assembly convention. `_` in any operand position indicates that operand is absent.
+[3] The *asm-string* shall evaluate to a value of type `[char, N]`. The operand format follows the GAS extended inline assembly convention. `_` in any operand position indicates that operand is absent.
 
 [4] The assembly dialect accepted is implementation-defined ([intro.impldef]).
 
@@ -1293,52 +1299,67 @@ asm(instr, _, _, _);
 
 ---
 
-## 30 Reflection and Query Symbols [over.reflect]
+## 30 Built-in Functions [over.reflect]
 
 ### 30.1 General [over.reflect.general]
 
-[1] GAL provides a set of built-in specialized symbols for compile-time reflection and type querying. These symbols are not overloadable.
+[1] GAL provides a set of built-in functions for compile-time reflection, type querying, and code generation. Built-in functions shall not be overloaded and UFCS shall not apply to them ([over.call]).
 
-### 30.2 Type Query Symbols [over.reflect.type]
+### 30.2 Identity and Stringification [over.reflect.identity]
 
-[1] The following symbols query properties of types:
+[1] The following built-in functions operate on identifiers and expressions as text:
 
-- `typeof(` *expr* `)` — yields the type of *expr* as a compile-time type value.
+- `stringof(` *expr* `)` — yields *expr* as a `[char, N]` array without evaluating it.
+- `identof(` *expr* `)` — yields the identifier name of *expr* as a `[char, N]` array.
+
+### 30.3 Type Query Functions [over.reflect.type]
+
+[1] The following built-in functions query properties of types:
+
+- `typeof(` *expr* `)` — yields the type of *expr* as a compile-time `type` value.
 - `sizeof<` *T* `>()` — yields the size of type *T* in bytes as a `usize`.
+- `sizeof(` *expr* `)` — yields the size of the object *expr* in bytes as a `usize`.
 - `alignof<` *T* `>()` — yields the alignment requirement of type *T* in bytes as a `usize`.
+- `alignof(` *expr* `)` — yields the alignment requirement of object *expr* in bytes as a `usize`.
 - `offsetof<` *T* `>(` *field* `)` — yields the byte offset of *field* within object type *T* as a `usize`.
 
-### 30.3 Object Reflection Symbols [over.reflect.object]
+### 30.4 Length and Field Count [over.reflect.len]
 
-[1] The following symbols reflect over object types:
+[1] The following built-in functions query the element or field count of a type or value:
 
-- `fieldof<` *T* `>(` *index* `)` — yields the field of type *T* at the given index as a variable; suitable for iteration.
-- `fieldSizeof<` *T* `>()` — yields an array of field sizes in bytes for type *T*.
+- `lenof(` *expr* `)` — yields the element count of an array or the field count of an object or enum as a `usize`.
+- `lenof<` *T* `>()` — yields the field count of object or enum type *T* as a `usize`.
 
-### 30.4 Identity Symbols [over.reflect.identity]
+### 30.5 Object Reflection [over.reflect.object]
 
-[1] The following symbols operate on identifiers and expressions as text:
+[1] The following built-in functions reflect over object types:
 
-- `stringof(` *expr* `)` — stringifies *expr* as a `char` array without evaluating it.
-- `identof(` *expr* `)` — yields the identifier name of *expr* as a `char` array.
+- `fieldof<` *T* `>(` *index* `)` — yields the field of type *T* at the given index as a variable; suitable for iteration and direct manipulation.
 
-### 30.5 Function Reflection Symbols [over.reflect.fct]
+### 30.6 Address [over.reflect.addr]
 
-[1] The following symbols reflect over function types:
+[1] The following built-in function yields the address of its operand:
 
-- `returnof(` *fn* `)` — yields the return type of the given function as a compile-time type value.
+- `addrof(` *expr* `)` — yields the address of *expr* as a pointer of the appropriate type. The operand shall be an lvalue. A `const` binding shall not be used as the operand. See ([basic.compound.addr]) for full semantics.
+
+### 30.7 Code Generation [over.reflect.codegen]
+
+[1] The following built-in function inserts generated code at the point of the call:
+
+- `mixin(` *expr* `)` — converts a `[char, N]` string expression to a sequence of GAL tokens and inserts those tokens at the point of the call. The resulting token sequence shall be syntactically valid in the context of the insertion point.
 
 [2] *Example:*
 ```
 type Point = object { x*: intd; y*: intd; };
 
 let s = sizeof<Point>();         // size in bytes
+let s2 = sizeof(Point(x: 0, y: 0));  // size of object
 let t = typeof(s);               // usize
 let name = identof(s);           // "s"
 let field = fieldof<Point>(0);   // yields Point.x
+let n = lenof<Point>();          // 2
 
-fn getX(p: Point): intd { return p.x; }
-let rt = returnof(getX);         // intd
+mixin("let x = 1;");
 ```
 
 ---
@@ -1358,7 +1379,7 @@ let rt = returnof(getX);         // intd
 - A pointer subscript expression `p[N]` ([basic.compound.ptr]).
 - A function call whose return type is `ref T` ([dcl.fct.general]).
 
-[2] A `const` binding is not an lvalue. It shall not be used as the operand of `addr` ([basic.compound.addr]).
+[2] A `const` binding is not an lvalue. It shall not be used as the operand of `addrof` ([basic.compound.addr]).
 
 ### 31.3 Rvalues [expr.cat.rvalue]
 
@@ -1429,10 +1450,10 @@ let d = intd('a') + 1;  // explicit conversion required for char
 
 - `asm` statements ([stmt.asm]).
 - `goto` and `label` ([stmt.label]).
-- `addr` applied to any operand ([basic.compound.addr]).
+- `addrof` applied to any operand ([basic.compound.addr]).
 - Any undefined behavior ([intro.undef]).
 - Pointer arithmetic where the pointer was not created within the same `const` context.
 
 [2] A function call in a constant expression context is evaluated at compile time if the function body is fully evaluable at compile time, regardless of whether the function is declared `const fn`. If the body cannot be fully evaluated at compile time, the program is ill-formed.
 
-[3] `mixin` ([dcl.mixin]) is legal in a constant expression context.
+[3] `mixin` ([over.reflect.codegen]) is legal in a constant expression context.
