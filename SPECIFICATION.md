@@ -1155,7 +1155,7 @@ let splitmethod = 1.sum 2, 3;
 | Level | Operators | Associativity |
 |-------|-----------|---------------|
 | 1 | `()` `[]` `.` `->` `::` | L |
-| 2 | Unary `!` unary `-` unary `+` `addrof` `cast` | R |
+| 2 | Unary `!` unary `-` unary `+` `cast` | R |
 | 3 | `*` `/` `%` | L |
 | 4 | `+` `-` | L |
 | 5 | `..` | L |
