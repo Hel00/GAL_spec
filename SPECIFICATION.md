@@ -214,8 +214,7 @@ a raw string
 
 [2] *Example:*
 ```
-type MyInt: type = intq;
-const T: type = floatd;
+type MyInt = intq;
 ```
 
 ### 5.7 Type Syntax [basic.types.syntax]
