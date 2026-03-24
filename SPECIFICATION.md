@@ -210,9 +210,11 @@ a raw string
 
 ### 5.6 The `type` Type [basic.types.type]
 
-[1] `type` is a first-class type whose values are types. A binding of type `type` holds a type as its value. `type` is the default type annotation for generic parameters ([dcl.fct.generic]).
+[1] `type` is a meta-type used to denote types in generic parameter declarations and type declarations.
 
-[2] *Example:*
+[2] `type` does not participate in type expressions ([basic.types.syntax]).
+
+[3] *Example:*
 ```
 type MyInt = intq;
 ```
@@ -234,7 +236,6 @@ type MyInt = intq;
 > &nbsp;&nbsp; `auto`
 > &nbsp;&nbsp; `_`
 > &nbsp;&nbsp; `void`
-> &nbsp;&nbsp; `type`
 > &nbsp;&nbsp; *identifier*
 >
 > *fundamental-type:* one of
