@@ -14,11 +14,12 @@ Conventions:
 
 ### Keywords [lex.key]
 ```
-addr     alias    asm      auto     bool     break    case     cast
-char     const    continue elif     else     enum     fn       for
-goto     if       imut     import   include  label    let      mixin
-mut      object   ptr      ref      return   template this
-This     type     val      var      void
+addrof   alias    alignof  asm      auto     bool     break    case
+cast     char     const    continue elif     else     enum     fieldof
+fn       for      goto     if       imut     import   include  identof
+label    lenof    let      mixin    mut      object   offsetof ptr
+ref      return   sizeof   stringof template this     This     type
+typeof   val      var      void
 ```
 
 ### Operators and Punctuators [lex.operators]
