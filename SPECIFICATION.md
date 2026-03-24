@@ -642,8 +642,13 @@ let worker  = Person::Worker();  // holds "I am a worker!"
 > &nbsp;&nbsp; `<` *generic-parameter-seq* `>`
 >
 > *generic-parameter-seq:*
+> &nbsp;&nbsp; *generic-parameter*
+> &nbsp;&nbsp; *generic-parameter* `,` *generic-parameter-seq*
+>
+> *generic-parameter:*
 > &nbsp;&nbsp; *identifier*
-> &nbsp;&nbsp; *identifier* `,` *generic-parameter-seq*
+> &nbsp;&nbsp; *identifier* `:` *type*
+> &nbsp;&nbsp; *identifier* `:` *type* `=` *type*
 >
 > *parameter-list:*
 > &nbsp;&nbsp; *parameter*
@@ -694,20 +699,13 @@ let y = intd(3.14);   // truncates to intd
 
 ### 16.4 Generics [dcl.fct.generic]
 
-[1] Generic parameters are type placeholders resolved at each call site from argument types. They may appear anywhere a type is permitted in the function signature or body. GAL generics follow the same rules as C++ templates.
+[1] Generic parameters are implicitly `const` and may appear anywhere a type is permitted in the function signature or body. A generic parameter's type annotation is optional and defaults to `type`. GAL generics follow the same rules as C++ templates.
 
-[2] A generic parameter may declare a default type using `=`. A variadic generic parameter is declared with `...` and shall be the last in the *generic-parameter-list*. Variadic arguments may be iterated as an array.
-
-> *generic-parameter:*
-> &nbsp;&nbsp; *identifier*
-> &nbsp;&nbsp; *identifier* `=` *type*
-> &nbsp;&nbsp; *identifier* `...`
+[2] A generic parameter with a default type shall not precede a generic parameter without a default type. A variadic generic parameter shall be the last in the *generic-parameter-list* and is declared by annotating the parameter with an array type of deduced size. Variadic arguments may be iterated as an array.
 
 [3] *Note 1: GAL generics fill the role of C++ templates for functions and types. The keyword `template` in GAL has a distinct, unrelated meaning ([dcl.template]).*
 
-[4] A generic parameter with a default type shall not precede a generic parameter without a default type.
-
-[5] *Example:*
+[4] *Example:*
 ```
 fn swap<T>(a: ref T, b: ref T): void
 {
@@ -716,14 +714,14 @@ fn swap<T>(a: ref T, b: ref T): void
     b = tmp;
 }
 
-fn sum<T...>(args: T[_]): intd
+fn sum<T: [type, _]>(args: T): intd
 {
     var total: intd = 0;
     for v, args { total += intd(v); }
     return total;
 }
 
-fn defaulted<T = intd>(x: T): T { return x; }
+fn defaulted<T: type = intd>(x: T): T { return x; }
 ```
 
 ---
@@ -882,7 +880,7 @@ mixin(src);
 
 [4] In a `for` statement, the *element-binding* and the iterated *expression* are mandatory. The *for-index* may be omitted. `_` in any binding position discards that binding. If both for-index and element-binding are _, the loop iterates over the expression without binding either. If a declaration-keyword is absent from a for-index or element-binding, the binding is implicitly let.
 
-[5] The for statement evaluates the iterated expression once to obtain a sequence. If the expression returns a (T, usize) tuple via a for overload ([over.for]), the body executes usize times, binding each element in turn. If T is ptr U, the element advances by sizeof<U>() bytes per iteration; otherwise by sizeof<T>(). If the iterated expression is an array, the body executes .len times.
+[5] The for statement evaluates the iterated expression once to obtain a sequence. If the expression returns a (T, usize) tuple via a for overload ([over.for]), the body executes usize times, binding each element in turn. If T is ptr U, the element advances by sizeof<U>() bytes per iteration; otherwise by sizeof<T>(). If the iterated expression is an array, the body executes `lenof` times.
 
 [6] The following declarations are equivalent:
 ```
