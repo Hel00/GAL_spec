@@ -147,8 +147,8 @@ typeof   val      var      void
 
 [9] *Example:*
 ```
-let a: char[_] = "hello \"world\"";
-let b: char[_] = """
+let a: [char, _] = "hello \"world\"";
+let b: [char, _] = """
 this is
 a raw string
 """;
@@ -458,22 +458,17 @@ let arr = [0 .. 5];  // produces [0, 1, 2, 3, 4, 5]
 [5] *Example:*
 ```
 var x: intd = 1;
-var xPtr: ptr mut intd = addr(x);
+var xPtr: ptr mut intd = addrof(x);
 xPtr[0] = 2;
 ```
 
-### 12.2 The `addr` Operator [basic.compound.addr]
+### 12.2 The `addrof` Function [basic.compound.addr]
 
-[1] `addr` yields the address of its operand as a pointer of the appropriate type. `addr` is a built-in specialized symbol ([over.general]) and shall not be overloaded.
+[1] `addrof` is a built-in function that yields the address of its operand as a pointer of the appropriate type. `addrof` shall not be overloaded.
 
-[2] *Syntax:*
+[2] The operand of `addrof` shall be an lvalue.
 
-> *addr-expression:*
-> &nbsp;&nbsp; `addr` `(` *expression* `)`
-
-[3] The operand of `addr` shall be an lvalue.
-
-[4] A `const` binding shall not be used as the operand of `addr`. `const` bindings have no runtime address.
+[3] A `const` binding shall not be used as the operand of `addrof`. `const` bindings have no runtime address.
 
 ### 12.3 References [basic.compound.ref]
 
@@ -979,7 +974,7 @@ case(x)
 
 [1] Specialized symbols are operators and built-in constructs that use a calling convention specific to their syntactic position rather than standard function call syntax (e.g., `a + b`, `for i, e, c {}`).
 
-[2] Most specialized symbols may be overloaded by defining a function whose name is the symbol enclosed in backticks. The `addr` operator ([basic.compound.addr]) shall not be overloaded.
+[2] Most specialized symbols may be overloaded by defining a function whose name is the symbol enclosed in backticks. Built-in functions ([over.reflect]) shall not be overloaded.
 
 [3] *Syntax:*
 
@@ -1131,7 +1126,7 @@ let c: char = cast<char>(x);
 
 [3] `x.f(y)` is equivalent to `f(x, y)`. The value to the left of `.` is passed as the first argument.
 
-[4] UFCS shall not apply to specialized symbols ([over.general]). Operator overloads, `addr`, `for`, and all other specialized symbols may only be invoked through their prescribed syntactic form.
+[4] UFCS shall not apply to specialized symbols ([over.general]) or built-in functions ([over.reflect]). Operator overloads, `for`, and all other specialized symbols may only be invoked through their prescribed syntactic form.
 
 [5] If both a field of an object and a UFCS-eligible free function share the same name for a given type, and the call is syntactically ambiguous, the program is ill-formed.
 
