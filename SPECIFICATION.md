@@ -611,8 +611,8 @@ type Counter = object {
 [5] *Example:*
 ```
 type Person = enum {
-    Student = fn(): char[_] { return "I am a student!"; };
-    Worker  = fn(): char[_] { return "I am a worker!"; };
+    Student = fn(): [char, _] { return "I am a student!"; };
+    Worker  = fn(): [char, _] { return "I am a worker!"; };
 };
 
 let student = Person::Student;   // callable lambda
@@ -731,13 +731,13 @@ fn defaulted<T: type = intd>(x: T): T { return x; }
 
 [1] A template function is declared with `template fn`. Its body is textually embedded at every call site. A template function shall not declare a *return-type*.
 
-[2] A parameter of type `char[_]` in a template function may receive an identifier as an argument. The identifier is not subject to name lookup; it is stringified and passed as a `char` array.
+[2] A parameter of type `[char, _]` in a template function may receive an identifier as an argument. The identifier is not subject to name lookup; it is stringified and passed as a `char` array.
 
-[3] If the last parameter is of type `char[_]`, the caller may omit the parenthesized argument for that parameter and supply it as a `{}`-delimited block following the call. The entire contents of the block are passed as a raw, unevaluated string.
+[3] If the last parameter is of type `[char, _]`, the caller may omit the parenthesized argument for that parameter and supply it as a `{}`-delimited block following the call. The entire contents of the block are passed as a raw, unevaluated string.
 
 [4] *Example:*
 ```
-template fn myClass(symbol: char[_], body: char[_])
+template fn myClass(symbol: [char, _], body: [char, _])
 {
     mixin("type " + symbol + " = object {" + body + "};");
 }
