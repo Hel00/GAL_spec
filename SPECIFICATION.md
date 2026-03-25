@@ -1365,7 +1365,6 @@ type Point = object { x*: intd, y*: intd, };
 
 let s = sizeof<Point>();
 let s2 = sizeof(Point(x: 0, y: 0));
-let t = typeof(s);
 let name = identof(s);           // "s"
 let field = fieldof<Point>(0);   // yields Point.x
 let n = lenof<Point>();          // 2
