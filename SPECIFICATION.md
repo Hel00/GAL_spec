@@ -556,7 +556,7 @@ var y: intd | floatd = 1.1;  // active type is floatd; value may change, type ma
 > &nbsp;&nbsp; *field* *field-seq*
 >
 > *field:*
-> &nbsp;&nbsp; *declaration-keyword*_opt *identifier* *visibility-modifier*_opt *pragma*_opt *type-annotation*_opt *initializer*_opt `;`
+> &nbsp;&nbsp; *declaration-keyword*_opt *identifier* *visibility-modifier*_opt *pragma*_opt *type-annotation*_opt *initializer*_opt `,`
 
 ### 14.2 Construction [class.ctor]
 
@@ -675,6 +675,8 @@ let worker  = Person::Worker();  // holds "I am a worker!"
 [2] If a *return-type* is absent, the function's return type is `void`. A `return` statement without an operand is valid only in a `void` function.
 
 [3] Parameters follow the same declaration rules as variable declarations ([dcl.var]). If a *declaration-keyword* is absent on a parameter, mutability is inferred from the type qualifier.
+
+[4] A generic-parameter is an implicitly const binding whose const declarator is not written and cannot be specified. The generic-type annotation defaults to type if omitted. Generic parameters are the only context in which a variable binding may hold a value of type type; type is not available as a type annotation outside of generic-parameter and type declarations ([dcl.type]).
 
 ### 16.2 Lambdas [dcl.fct.lambda]
 
