@@ -57,6 +57,8 @@
 
 **declaration keyword** — one of `const`, `let`, or `var`; controls the rebindability of a binding.
 
+**parameter binding** — a variable binding introduced by a function parameter, object field, or iteration statement. Parameter bindings follow the same declaration rules as variable declarations ([dcl.var]). The declaration keyword defaults to `let` if omitted.
+
 **translation unit** — a single source file and all files textually included into it.
 
 **undefined behavior** — behavior for which this document imposes no requirements. Programs that exhibit undefined behavior are ill-formed, no diagnostic required.
@@ -340,8 +342,8 @@ let (a, _, c) = (1, 2, 3);
 
 [2] *Example:*
 ```
-let _: auto = object { var x = 1; };  // ASM generated
-let _: _    = object { var x = 1; };  // no ASM generated
+let _: auto = object { var x = 1, };  // ASM generated
+let _: _    = object { var x = 1, };  // no ASM generated
 ```
 
 ---
@@ -540,7 +542,7 @@ var y: intd | floatd = 1.1;  // active type is floatd; value may change, type ma
 
 ### 14.1 General [class.general]
 
-[1] An object type is a record of named fields. Fields are private to the translation unit by default. The visibility modifier `*` exports a field ([lex.vis]).
+[1] An object type is a record of named fields. Fields are private to the translation unit by default. The visibility modifier `*` exports a field ([lex.vis]). Fields are parameter bindings ([intro.defs]).
 
 [2] *Syntax:*
 
@@ -564,7 +566,7 @@ var y: intd | floatd = 1.1;  // active type is floatd; value may change, type ma
 
 [2] *Example:*
 ```
-type Data = object { value*: intd; };
+type Data = object { value*: intd, };
 let d = Data(value: 42);
 ```
 
@@ -578,7 +580,7 @@ let d = Data(value: 42);
 
 [2] *Example:*
 ```
-let obj = object { let x* = 1; var y = 2; };
+let obj = object { let x* = 1, var y = 2, };
 ```
 
 ### 14.5 `this` and `This` [class.this]
@@ -590,9 +592,9 @@ let obj = object { let x* = 1; var y = 2; };
 [3] *Example:*
 ```
 type Counter = object {
-    var count*: intd = 0;
-    let increment = fn() { this->count += 1; };
-    let self: This;
+    var count*: intd = 0,
+    let increment = fn() { this->count += 1; },
+    let self: This,
 };
 ```
 
@@ -612,7 +614,7 @@ type Counter = object {
 > &nbsp;&nbsp; *variant* *variant-seq*
 >
 > *variant:*
-> &nbsp;&nbsp; *identifier* `=` *expression* `;`
+> &nbsp;&nbsp; *identifier* `=` *expression* `,`
 
 [3] Every variant shall be assigned a value. A variant without an assigned value results in undefined behavior ([intro.undef]).
 
@@ -621,8 +623,8 @@ type Counter = object {
 [5] *Example:*
 ```
 type Person = enum {
-    Student = fn(): [char, _] { return "I am a student!"; };
-    Worker  = fn(): [char, _] { return "I am a worker!"; };
+    Student = fn(): [char, _] { return "I am a student!"; },
+    Worker  = fn(): [char, _] { return "I am a worker!"; },
 };
 
 let student = Person::Student;   // callable lambda
@@ -674,9 +676,9 @@ let worker  = Person::Worker();  // holds "I am a worker!"
 
 [2] If a *return-type* is absent, the function's return type is `void`. A `return` statement without an operand is valid only in a `void` function.
 
-[3] Parameters follow the same declaration rules as variable declarations ([dcl.var]). If a *declaration-keyword* is absent on a parameter, mutability is inferred from the type qualifier.
+[3] Function parameters are parameter bindings ([intro.defs]).
 
-[4] A generic-parameter is an implicitly const binding whose const declarator is not written and cannot be specified. The generic-type annotation defaults to type if omitted. Generic parameters are the only context in which a variable binding may hold a value of type type; type is not available as a type annotation outside of generic-parameter and type declarations ([dcl.type]).
+[4] A *generic-parameter* is an implicitly `const` binding whose `const` declarator is not written and cannot be specified. The *generic-type* annotation defaults to `type` if omitted. Generic parameters are the only context in which a variable binding may hold a value of type `type`; `type` is not available as a type annotation outside of *generic-parameter* and `type` declarations ([dcl.type]).
 
 ### 16.2 Lambdas [dcl.fct.lambda]
 
@@ -687,9 +689,7 @@ let worker  = Person::Worker();  // holds "I am a worker!"
 > *lambda-expression:*
 > &nbsp;&nbsp; `fn` *generic-parameter-list*_opt `(` *parameter-list*_opt `)` *return-type*_opt *compound-statement*
 
-[3] A generic-parameter is an implicitly const binding whose const declarator is not written and cannot be specified. The generic-type annotation defaults to type if omitted. Generic parameters are the only context in which a variable binding may hold a value of type type; type is not available as a type annotation outside of generic-parameter and type declarations ([dcl.type]).
-
-[4] *Example:*
+[3] *Example:*
 ```
 let add = fn(x: intd, y: intd): intd { return x + y; };
 let result = add(1, 2);
@@ -712,7 +712,7 @@ let y = intd(3.14);   // truncates to intd
 
 ### 16.4 Generics [dcl.fct.generic]
 
-[1] Generic parameters are implicitly `const` and may appear anywhere a type is permitted in the function signature or body. A generic parameter's type annotation is optional and defaults to `type` ([basic.types.type]). GAL generics follow the same rules as C++ templates.
+[1] Generic parameters are implicitly `const` and may appear anywhere a type is permitted in the function signature or body. A generic parameter's *generic-type* annotation is optional and defaults to `type` ([basic.types.type]). GAL generics follow the same rules as C++ templates.
 
 [2] A generic parameter with a default type shall not precede a generic parameter without a default type. A variadic generic parameter shall be the last in the *generic-parameter-list* and is declared by annotating the parameter with an array type of deduced size. Variadic arguments may be iterated as an array.
 
@@ -762,7 +762,7 @@ template fn myClass(symbol: [char, _], body: [char, _])
 
 myClass Person
 {
-    var age*: intd = 0;
+    var age*: intd = 0,
 };
 ```
 
@@ -885,7 +885,7 @@ mixin(src);
 
 [3] The simple while repeatedly evaluates its condition and executes the body as long as the condition is non-zero. The three-part while executes the initializer once, then repeatedly checks the condition and executes the body followed by the update expression.
 
-[4] In a `for` statement, the *element-binding* and the iterated *expression* are mandatory. The *for-index* may be omitted. `_` in any binding position discards that binding. If both for-index and element-binding are `_`, the loop iterates over the expression without binding either. If a declaration-keyword is absent from a for-index or element-binding, the binding is implicitly `let`.
+[4] In a `for` statement, the *element-binding* and the iterated *expression* are mandatory. The *for-index* may be omitted. `_` in any binding position discards that binding. If both for-index and element-binding are `_`, the loop iterates over the expression without binding either. For-index and element-binding are parameter bindings ([intro.defs]).
 
 [5] The for statement evaluates the iterated expression once to obtain a sequence. If the expression returns a `(T, usize)` tuple via a for overload ([over.for]), the body executes `usize` times, binding each element in turn. If `T` is `ptr U`, the element advances by `sizeof<U>()` bytes per iteration; otherwise by `sizeof<T>()`. If the iterated expression is an array, the body executes `lenof(array)` times.
 
@@ -1005,7 +1005,10 @@ fn `-`<T>(left: T, right: T): T { ... }
 
 [2] *Example:*
 ```
-type Data = object { data: ptr uintb; length: usize; };
+type Data = object {
+    data: ptr uintb,
+    length: usize,
+};
 
 fn `for`(this: Data): (ptr uintb, usize)
 {
@@ -1089,7 +1092,7 @@ x = 3;
 [4] *Example:*
 ```
 // A.gal
-let data1* = object { d1*: intb; d2: intb; };
+let data1* = object { d1*: intb, d2: intb, };
 let data2  = object {};
 
 // main.gal
@@ -1210,7 +1213,7 @@ type Flags [.packed.] = object { ... };
 type Flags* [.packed.] = object { ... };
 fn retInt() [.inline: always.]: intd { ... }
 type Flags = object {
-  active* [.bit: set(1).]: uintb = 0;
+  active* [.bit: set(1).]: uintb = 0,
 };
 ```
 
@@ -1265,7 +1268,7 @@ fn retInt() [.inline: always.]: intd { return 42; }
 
 type Data = object
 {
-    data* [.bit: set(6).]: uintb = 0;
+    data* [.bit: set(6).]: uintb = 0,
 };
 
 let bitSize [.bit: get(intd).]: usize;
@@ -1358,11 +1361,11 @@ asm(instr, _, _, _);
 
 [2] *Example:*
 ```
-type Point = object { x*: intd; y*: intd; };
+type Point = object { x*: intd, y*: intd, };
 
-let s = sizeof<Point>();         // size in bytes
-let s2 = sizeof(Point(x: 0, y: 0));  // size of object
-let t = typeof(s);               // usize
+let s = sizeof<Point>();
+let s2 = sizeof(Point(x: 0, y: 0));
+let t = typeof(s);
 let name = identof(s);           // "s"
 let field = fieldof<Point>(0);   // yields Point.x
 let n = lenof<Point>();          // 2
