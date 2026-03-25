@@ -652,8 +652,12 @@ let worker  = Person::Worker();  // holds "I am a worker!"
 >
 > *generic-parameter:*
 > &nbsp;&nbsp; *identifier*
-> &nbsp;&nbsp; *identifier* `:` *type*
-> &nbsp;&nbsp; *identifier* `:` *type* `=` *type*
+> &nbsp;&nbsp; *identifier* `:` *generic-type*
+> &nbsp;&nbsp; *identifier* `:` *generic-type* `=` *type*
+>
+> *generic-type:*
+> &nbsp;&nbsp; `type`
+> &nbsp;&nbsp; *array-type*
 >
 > *parameter-list:*
 > &nbsp;&nbsp; *parameter*
@@ -681,7 +685,9 @@ let worker  = Person::Worker();  // holds "I am a worker!"
 > *lambda-expression:*
 > &nbsp;&nbsp; `fn` *generic-parameter-list*_opt `(` *parameter-list*_opt `)` *return-type*_opt *compound-statement*
 
-[3] *Example:*
+[3] A generic-parameter is an implicitly const binding whose const declarator is not written and cannot be specified. The generic-type annotation defaults to type if omitted. Generic parameters are the only context in which a variable binding may hold a value of type type; type is not available as a type annotation outside of generic-parameter and type declarations ([dcl.type]).
+
+[4] *Example:*
 ```
 let add = fn(x: intd, y: intd): intd { return x + y; };
 let result = add(1, 2);
@@ -1316,7 +1322,7 @@ asm(instr, _, _, _);
 
 [1] The following built-in functions query properties of types:
 
-- `typeof(` *expr* `)` — yields the type of *expr* as a compile-time `type` value.
+- `typeof(` *expr* `)` — yields the type of *expr*.
 - `sizeof<` *T* `>()` — yields the size of type *T* in bytes as a `usize`.
 - `sizeof(` *expr* `)` — yields the size of the object *expr* in bytes as a `usize`.
 - `alignof<` *T* `>()` — yields the alignment requirement of type *T* in bytes as a `usize`.
