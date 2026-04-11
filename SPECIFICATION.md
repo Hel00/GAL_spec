@@ -1203,7 +1203,7 @@ x = 3;
 
 ### 23.2 `import` [dcl.import.import]
 
-[1] An `import` directive makes available only those declarations in the named translation unit that carry the visibility modifier `*` ([lex.vis]).
+[1] An `import` directive makes all declarations in the named translation unit available in the current translation unit. Declarations without `*` are local to the importing translation unit and shall not be re-exported. Declarations with `*` are re-exported only when the import itself carries `*` ([lex.vis]).
 
 [2] *Syntax:*
 
