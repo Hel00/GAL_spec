@@ -1467,6 +1467,7 @@ asm(instr, _, _, _);
 - `alignof<` *T* `>()` — yields the alignment requirement of type *T* in bytes as a `usize`.
 - `alignof(` *expr* `)` — yields the alignment requirement of object *expr* in bytes as a `usize`.
 - `offsetof<` *T* `>(` *field* `)` — yields the byte offset of *field* within object type *T* as a `usize`.
+- `hasfield<` *T* `>(` *name* `)` — yields true if type T has a field whose identifier matches name, false otherwise. name shall be a constant expression of type [char, N]. hasfield considers all fields of T regardless of their visibility modifier. Inherited fields are included. Evaluated at compile time.
 
 ### 29.4 Length and Field Count [over.reflect.len]
 
