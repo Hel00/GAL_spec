@@ -17,27 +17,26 @@
 10. Tuples [basic.tuple]
 11. Arrays and Ranges [basic.array]
 12. Pointers, References, and Values [basic.compound]
-13. Unions [basic.union]
-14. Objects [class]
-15. Enumerations [dcl.enum]
-16. Functions and Generics [dcl.fct]
-17. Templates [dcl.template]
-18. Mixins [dcl.mixin]
-19. Control Flow [stmt]
-20. Labels and Goto [stmt.label]
-21. Pattern Matching [stmt.case]
-22. Specialized Symbols and Operator Overloading [over]
-23. Scopes and Aliases [basic.scope]
-24. Import and Include [dcl.import]
-25. Casts [expr.cast]
-26. Function Call Syntax [over.call]
-27. Operator Precedence [expr.prec]
-28. Pragmas [dcl.pragma]
-29. Inline Assembly [stmt.asm]
-30. Built-in Functions [over.reflect]
-31. Value Categories [expr.cat]
-32. Name Lookup [basic.lookup]
-33. Expressions [expr.types]
+13. Objects [class]
+14. Enumerations [dcl.enum]
+15. Functions and Generics [dcl.fct]
+16. Templates [dcl.template]
+17. Mixins [dcl.mixin]
+18. Control Flow [stmt]
+19. Labels and Goto [stmt.label]
+20. Pattern Matching [stmt.case]
+21. Specialized Symbols and Operator Overloading [over]
+22. Scopes and Aliases [basic.scope]
+23. Import and Include [dcl.import]
+24. Casts [expr.cast]
+25. Function Call Syntax [over.call]
+26. Operator Precedence [expr.prec]
+27. Pragmas [dcl.pragma]
+28. Inline Assembly [stmt.asm]
+29. Built-in Functions [over.reflect]
+30. Value Categories [expr.cat]
+31. Name Lookup [basic.lookup]
+32. Expressions [expr.types]
 
 ---
 
@@ -143,7 +142,7 @@ typeof   val      var      void
 | `\'` | literal single quote |
 | `\0` | null character |
 
-[7] Escape sequences produce the corresponding character value; \0 produces the character with value zero (0x00).
+[7] Escape sequences produce the corresponding character value; `\0` produces the character with value zero (0x00).
 
 [8] A raw string literal is delimited by `"""` on both sides. No escape sequences are processed within a raw string literal; all characters are taken as-is including newlines. A raw string literal has no intrinsic type and follows the same usage rules as a regular string literal. It is ill-formed for the sequence `"""` to appear within a raw string literal.
 
@@ -161,9 +160,10 @@ a raw string
 [1] The following tokens are operators and punctuators:
 
 ```
-{   }   [   ]   (   )   ::  .   ->  *
-+   -   /   %   =   +=  -=  /=  %=  ==  !=
-<   >   <=  >=  &&  ||  !   |   ..  ,   :   ;   _
+{   }   [   ]   (   )   ::  .   ->
++   -   *   /   %   =   +=  -=  *=  /=  %=  ==  !=
+<   >   <=  >=  &&  ||  !   &   |   ^   ~   <<  >>
+&=  |=  ^=  <<= >>=  ..  ,   :   ;   _   #
 ```
 
 ### 4.8 The Visibility Modifier [lex.vis]
@@ -232,7 +232,6 @@ type MyInt = intq;
 > &nbsp;&nbsp; *value-type*
 > &nbsp;&nbsp; *array-type*
 > &nbsp;&nbsp; *tuple-type*
-> &nbsp;&nbsp; *union-type*
 > &nbsp;&nbsp; *object-type*
 > &nbsp;&nbsp; *enum-type*
 > &nbsp;&nbsp; `auto`
@@ -256,9 +255,21 @@ type MyInt = intq;
 > *type-qualifier:* one of
 > &nbsp;&nbsp; `mut` `imut`
 
-[2] A type qualifier describes the mutability of a value independently of the rebindability of its binding ([dcl.var]). `mut` specifies that the value or pointed-to data may be modified. `imut` specifies that it shall not be modified after initialization. If a type qualifier is omitted, mutability is inferred from the declaration keyword of the enclosing binding.
+[2] A type qualifier describes the mutability of a value independently of the rebindability of its binding ([dcl.var]). `mut` specifies that the value or pointed-to data may be modified. `imut` specifies that it shall not be modified after initialization. If a type qualifier is omitted, mutability is inferred from the declaration keyword of the enclosing binding according to the following table:
 
-[3] A type qualifier is part of the type, not the binding. In a pointer declaration ([basic.compound.ptr]), the qualifier on the pointed-to type and the rebindability of the pointer binding are independent properties.
+| Declaration keyword | Value mutability if qualifier omitted | Pointee/referent mutability if qualifier omitted |
+|---|---|---|
+| `const` | `imut` | `imut` |
+| `let` | `imut` | `imut` |
+| `var` | `mut` | `mut` |
+
+[3] A type qualifier is part of the type, not the binding. In a pointer declaration ([basic.compound.ptr]), the qualifier on the pointed-to type and the rebindability of the pointer binding are independent properties. The qualifier on the pointer type governs whether the stored address may change; the qualifier on the pointee type governs whether the pointed-to value may be modified through the pointer.
+
+[4] *Example:*
+```
+let p: ptr mut intd = addrof(x);  // p cannot be rebound; pointed-to intd is mutable
+var q: ptr intd     = addrof(x);  // q can be rebound; pointed-to intd is imut (inferred)
+```
 
 ---
 
@@ -308,6 +319,34 @@ let name*: [char, _] = "hello";
 > *type-declaration:*
 > &nbsp;&nbsp; `type` *identifier* *visibility-modifier*_opt *generic-parameter-list*_opt *pragma*_opt `=` *type* `;`
 
+### 7.3 Forward Declarations [dcl.fwd]
+
+[1] A forward declaration introduces a name into the current scope without providing a full definition. Forward declarations are required for mutual recursion and for types used before their definition in a single-pass translation unit.
+
+[2] *Syntax:*
+
+> *forward-declaration:*
+> &nbsp;&nbsp; `fn` *identifier* *visibility-modifier*_opt `(` *parameter-list*_opt `)` *return-type*_opt `;`
+> &nbsp;&nbsp; `type` *identifier* *visibility-modifier*_opt `;`
+> &nbsp;&nbsp; *declaration-keyword* *identifier* *visibility-modifier*_opt `:` *type* `;`
+
+[3] A forward-declared function shall have a matching full definition in the same translation unit or be resolved via `import` ([dcl.import]).
+
+[4] A forward-declared type is an incomplete type. An incomplete type may be used only as the target of a pointer type. Any other use of an incomplete type is ill-formed.
+
+[5] A forward-declared variable shall carry the visibility modifier `*` and shall be resolved via `import`. A forward-declared variable without `*` is ill-formed.
+
+[6] A function with a deduced return type ([dcl.fct.general]) shall not be forward-declared.
+
+[7] *Example:*
+```
+fn foo(x: intd): intd;  // function forward declaration
+type Node;               // type forward declaration — incomplete
+let x*: intd;            // variable forward declaration — resolved via import
+
+type Node = object { val: intd, next: ptr Node, };  // full definition
+```
+
 ---
 
 ## 8 The Wildcard and Anonymous Types [dcl.wild]
@@ -326,7 +365,7 @@ let name*: [char, _] = "hello";
 
 [6] In a *tuple-destructuring* ([basic.tuple]), `_` in a binding position discards the element at that position.
 
-[7] As a scope qualifier `_::`, it refers to the immediately enclosing outer scope when a name is shadowed by a declaration in the current scope ([basic.scope.general]).
+[7] As a scope qualifier `_::`, it refers to the immediately enclosing outer scope when a name is shadowed by a declaration in the current scope ([basic.scope.general]). The token sequence `_` `::` is always parsed as the outer-scope accessor; a standalone `_` is always the wildcard. The parser disambiguates by one token of lookahead.
 
 [8] *Example:*
 ```
@@ -352,7 +391,9 @@ let _: _    = object { var x = 1, };  // no ASM generated
 
 [1] `void` is a first-class type representing the absence of a value. A variable of type `void` may be declared to invoke a `void`-returning function in a `const` context or to explicitly discard a result.
 
-[2] *Example:*
+[2] `void` may appear as a generic argument. A parameter of type `void` accepts no value at the call site; the caller omits that argument. A function returning `void` may be used as an expression of type `void` only in discard contexts (`let _: void`, `const _: void`).
+
+[3] *Example:*
 ```
 fn doWork(): void {}
 
@@ -434,7 +475,7 @@ let nums: [intd, _] = [1, 2, 3];
 
 ### 11.2 Ranges [basic.array.range]
 
-[1] A range expression denotes a contiguous sequence of values between two endpoint expressions. A range is not a storable type. A range expression shall appear only inside `[]` to produce an array, or as a *case-label-expr* in a `case` statement ([stmt.case]).
+[1] A range expression denotes a contiguous sequence of values between two endpoint expressions. A range is not a type and shall not appear as a general expression. A range expression is valid only inside `[` `]` to produce an array literal, or as a *case-label-expr* in a `case` statement ([stmt.case]).
 
 [2] *Syntax:*
 
@@ -443,9 +484,11 @@ let nums: [intd, _] = [1, 2, 3];
 
 [3] The expression `[` *N1* `..` *N2* `]` where *N1* ≤ *N2* produces an ascending array containing all values from *N1* to *N2* inclusive.
 
-[4] If N1 is greater than N2, the range produces a descending array from N1 to N2 inclusive.
+[4] If *N1* is greater than *N2*, the range produces a descending array from *N1* to *N2* inclusive.
 
-[5] *Example:*
+[5] The `..` token has no operator precedence; it is a grammatical production only. Its use outside the contexts described in [11.2.1] is ill-formed.
+
+[6] *Example:*
 ```
 let arr = [0 .. 5];  // produces [0, 1, 2, 3, 4, 5]
 ```
@@ -467,7 +510,9 @@ let arr = [0 .. 5];  // produces [0, 1, 2, 3, 4, 5]
 
 [4] When a pointer to `char` is passed to a function expecting a null-terminated string, the user is responsible for ensuring null termination. The language does not impose null termination.
 
-[5] *Example:*
+[5] *Note: The language defines no null pointer literal. A null pointer may be constructed as `cast<ptr void>(usize(0))`. Convenience aliases are expected to be provided by the standard library.*
+
+[6] *Example:*
 ```
 var x: intd = 1;
 var xPtr: ptr mut intd = addrof(x);
@@ -516,31 +561,9 @@ let r: val intw = 1;
 
 ---
 
-## 13 Unions [basic.union]
+## 13 Objects [class]
 
-[1] A union type denotes a value that may be one of several types.
-
-[2] *Syntax:*
-
-> *union-type:*
-> &nbsp;&nbsp; *type* `|` *type*
-> &nbsp;&nbsp; *type* `|` *union-type*
-
-[3] The active type of a union binding is resolved at compile time from the initializer and is fixed for the lifetime of the binding. It is ill-formed to assign a value whose type differs from the active type to a union binding.
-
-[4] A `var` union binding may be rebound to another value of the same active type. It shall not be rebound to a value of a different type.
-
-[5] *Example:*
-```
-let x: intd | floatd = 1;    // active type is intd
-var y: intd | floatd = 1.1;  // active type is floatd; value may change, type may not
-```
-
----
-
-## 14 Objects [class]
-
-### 14.1 General [class.general]
+### 13.1 General [class.general]
 
 [1] An object type is a record of named fields. Fields are private to the translation unit by default. The visibility modifier `*` exports a field ([lex.vis]). Fields are parameter bindings ([intro.defs]).
 
@@ -560,7 +583,7 @@ var y: intd | floatd = 1.1;  // active type is floatd; value may change, type ma
 > *field:*
 > &nbsp;&nbsp; *declaration-keyword*_opt *identifier* *visibility-modifier*_opt *pragma*_opt *type-annotation*_opt *initializer*_opt `,`
 
-### 14.2 Construction [class.ctor]
+### 13.2 Construction [class.ctor]
 
 [1] An object is constructed with named arguments only. Positional construction is ill-formed. The order of named arguments is not significant.
 
@@ -570,11 +593,11 @@ type Data = object { value*: intd, };
 let d = Data(value: 42);
 ```
 
-### 14.3 Inheritance [class.inherit]
+### 13.3 Inheritance [class.inherit]
 
 [1] An object type may inherit from one or more named object types by listing them in the *inheritance-list*.
 
-### 14.4 Immediate Objects [class.immediate]
+### 13.4 Immediate Objects [class.immediate]
 
 [1] An anonymous object may be declared inline without a prior *type-declaration* ([dcl.type]).
 
@@ -583,7 +606,7 @@ let d = Data(value: 42);
 let obj = object { let x* = 1, var y = 2, };
 ```
 
-### 14.5 `this` and `This` [class.this]
+### 13.5 `this` and `This` [class.this]
 
 [1] Within an object body, `this` is an implicitly available identifier of type `ptr` to the enclosing object type. `This` is an implicitly available type alias for the enclosing object type.
 
@@ -598,11 +621,33 @@ type Counter = object {
 };
 ```
 
+### 13.6 Field Initializers [class.init]
+
+[1] Field initializers are evaluated per construction, in declaration order, each time an object instance is created.
+
+[2] A field declared `const` shall have a constant expression initializer. `const` field initializers are evaluated once at type-definition time and are shared across all instances.
+
+[3] *Example:*
+```
+var counter: intd = 0;
+
+type Foo = object {
+    var x = (counter += 1),  // evaluated each construction
+    const id = 99,            // evaluated once at type definition
+};
+
+let a = Foo();  // counter becomes 1; a.x = 1
+let b = Foo();  // counter becomes 2; b.x = 2
+// a.id == b.id == 99
+```
+
 ---
 
-## 15 Enumerations [dcl.enum]
+## 14 Enumerations [dcl.enum]
 
-[1] An enumeration is a tagged union whose variants may hold values of any type.
+### 14.1 General [dcl.enum.general]
+
+[1] An enumeration is a discriminated type whose variants each carry either a fixed value or a type. Every variant shall be assigned a value or a type; a variant with neither is ill-formed.
 
 [2] *Syntax:*
 
@@ -615,27 +660,57 @@ type Counter = object {
 >
 > *variant:*
 > &nbsp;&nbsp; *identifier* `=` *expression* `,`
+> &nbsp;&nbsp; *identifier* `=` *type* `,`
 
-[3] Every variant shall be assigned a value. A variant without an assigned value results in undefined behavior ([intro.undef]).
+[3] Variants are accessed via `::` ([lex.scope]).
 
-[4] Variants are accessed via `::` ([lex.scope]).
+[4] Each variant of an enumeration carries an implicit unique integer discriminant assigned by the compiler in declaration order, beginning at zero. The discriminant is used by `case` ([stmt.case]) to identify the active variant at runtime.
 
-[5] *Example:*
+### 14.2 Value Variants [dcl.enum.value]
+
+[1] A value variant assigns a fixed expression to a variant name. Accessing the variant via `::` yields the assigned value directly.
+
+[2] *Example:*
 ```
 type Person = enum {
     Student = fn(): [char, _] { return "I am a student!"; },
     Worker  = fn(): [char, _] { return "I am a worker!"; },
 };
 
-let student = Person::Student;   // callable lambda
-let worker  = Person::Worker();  // holds "I am a worker!"
+let student = Person::Student;   // yields the lambda
+let result  = Person::Worker();  // calls the lambda; holds "I am a worker!"
+```
+
+### 14.3 Type Variants [dcl.enum.type]
+
+[1] A type variant associates a variant name with a type. A value of that type may be wrapped into the variant using variant construction syntax. The wrapped value may be extracted through pattern matching ([stmt.case]).
+
+[2] *Syntax:*
+
+> *variant-construction-expression:*
+> &nbsp;&nbsp; *qualified-variant* `(` *expression* `)`
+>
+> *qualified-variant:*
+> &nbsp;&nbsp; *identifier* `::` *identifier*
+
+[3] A *variant-construction-expression* produces a value of the enclosing enumeration type with the specified variant active and the given expression as the inner value.
+
+[4] *Example:*
+```
+type Number = enum {
+    Int   = intd,
+    Float = floatd,
+};
+
+let n = Number::Int(42);      // wraps 42 as the Int variant
+let f = Number::Float(3.14);  // wraps 3.14 as the Float variant
 ```
 
 ---
 
-## 16 Functions and Generics [dcl.fct]
+## 15 Functions and Generics [dcl.fct]
 
-### 16.1 Function Declarations [dcl.fct.general]
+### 15.1 Function Declarations [dcl.fct.general]
 
 [1] *Syntax:*
 
@@ -674,13 +749,13 @@ let worker  = Person::Worker();  // holds "I am a worker!"
 > *return-statement:*
 > &nbsp;&nbsp; `return` *expression*_opt `;`
 
-[2] If a *return-type* is absent, the function's return type is `void`. A `return` statement without an operand is valid only in a `void` function.
+[2] If a *return-type* is absent, the return type is deduced from the operand of the `return` statement. All `return` statements in the function shall yield expressions of the same type. A function whose body contains no `return` statement with an operand has deduced return type `void`. A function with a deduced return type shall not be forward-declared ([dcl.fwd]).
 
-[3] Function parameters are parameter bindings ([intro.defs]).
+[3] Function parameters are parameter bindings ([intro.defs]). If a parameter has no *type-annotation*, its type is deduced from the *initializer*. A parameter with neither a *type-annotation* nor an *initializer* is ill-formed.
 
 [4] A *generic-parameter* is an implicitly `const` binding whose `const` declarator is not written and cannot be specified. The *generic-type* annotation defaults to `type` if omitted. Generic parameters are the only context in which a variable binding may hold a value of type `type`; `type` is not available as a type annotation outside of *generic-parameter* and `type` declarations ([dcl.type]).
 
-### 16.2 Lambdas [dcl.fct.lambda]
+### 15.2 Lambdas [dcl.fct.lambda]
 
 [1] A lambda is an anonymous function expression. Its type is `auto`.
 
@@ -695,7 +770,7 @@ let add = fn(x: intd, y: intd): intd { return x + y; };
 let result = add(1, 2);
 ```
 
-### 16.3 Type-as-Constructor [dcl.fct.typecast]
+### 15.3 Type-as-Constructor [dcl.fct.typecast]
 
 [1] A fundamental or user-defined type may be used as a constructor to produce a value of that type from an expression. This performs a non-reinterpret conversion and is distinct from `cast` ([expr.cast]).
 
@@ -710,13 +785,13 @@ let x = floatd(1);    // converts intd 1 to floatd
 let y = intd(3.14);   // truncates to intd
 ```
 
-### 16.4 Generics [dcl.fct.generic]
+### 15.4 Generics [dcl.fct.generic]
 
-[1] Generic parameters are implicitly `const` and may appear anywhere a type is permitted in the function signature or body. A generic parameter's *generic-type* annotation is optional and defaults to `type` ([basic.types.type]). GAL generics follow the same rules as C++ templates.
+[1] Generic parameters are implicitly `const` and may appear anywhere a type is permitted in the function signature or body. A generic parameter's *generic-type* annotation is optional and defaults to `type` ([basic.types.type]).
 
-[2] A generic parameter with a default type shall not precede a generic parameter without a default type. A variadic generic parameter shall be the last in the *generic-parameter-list* and is declared by annotating the parameter with an array type of deduced size. Variadic arguments may be iterated as an array.
+[2] A generic function is instantiated once per unique combination of generic arguments at the point of first call. Instantiation consists of substituting each generic parameter with the supplied argument, followed by full semantic analysis of the resulting body. If semantic analysis of an instantiation fails, the program is ill-formed at the call site. Two or more calls with identical generic arguments share one instantiation.
 
-[3] *Note 1: GAL generics fill the role of C++ templates for functions and types. The keyword `template` in GAL has a distinct, unrelated meaning ([dcl.template]).*
+[3] A generic parameter with a default type shall not precede a generic parameter without a default type. A variadic generic parameter shall be the last in the *generic-parameter-list* and is declared by annotating the parameter with an array type of deduced size. Variadic arguments may be iterated as an array.
 
 [4] *Example:*
 ```
@@ -739,17 +814,20 @@ fn defaulted<T: type = intd>(x: T): T { return x; }
 
 ---
 
-## 17 Templates [dcl.template]
+## 16 Templates [dcl.template]
 
-### 17.1 General [dcl.template.general]
+### 16.1 General [dcl.template.general]
 
 [1] The `template` keyword applied to a construct instructs the compiler to expand it textually at the point of use. Templates are implicitly evaluated at compile time. Combining `template` with `const` on the same declaration is ill-formed.
 
-### 17.2 Template Functions [dcl.template.fn]
+### 16.2 Template Functions [dcl.template.fn]
 
 [1] A template function is declared with `template fn`. Its body is textually embedded at every call site. A template function shall not declare a *return-type*.
 
-[2] A parameter of type `[char, _]` in a template function may receive an identifier as an argument. The identifier is not subject to name lookup; it is stringified and passed as a `char` array.
+[2] A parameter of type `[char, _]` in a template function may receive an argument in two ways, determined by the parameter's type:
+
+- If the parameter is declared as `[char, _]` (by value), the compiler first attempts to resolve the argument as a variable in the current scope. If a variable of type `[char, N]` is found, its value is passed. If no such variable is found, the identifier is stringified and passed as a `[char, N]` literal. If a variable is found but is not of type `[char, N]`, the program is ill-formed.
+- If the parameter is declared as `ref [char, _]`, the argument shall be an lvalue of type `[char, N]`. Stringification does not occur; no variable of that name is required to be of char array type.
 
 [3] If the last parameter is of type `[char, _]`, the caller may omit the parenthesized argument for that parameter and supply it as a `{}`-delimited block following the call. The entire contents of the block are passed as a raw, unevaluated string.
 
@@ -764,9 +842,14 @@ myClass Person
 {
     var age*: intd = 0,
 };
+
+// passing a char array variable explicitly
+let typeName: [char, _] = "Animal";
+template fn declare(name: ref [char, _]) { mixin("type " + name + " = object {};"); }
+declare typeName;  // passes the variable; stringification does not occur
 ```
 
-### 17.3 Template Loops [dcl.template.loop]
+### 16.3 Template Loops [dcl.template.loop]
 
 [1] `template for` and `template while` unroll their bodies at compile time, embedding each iteration textually at the call site. Their syntax is identical to `for` and `while` ([stmt.iter]) with `template` prepended.
 
@@ -780,7 +863,7 @@ template fn repeat(times: usize)
 
 ---
 
-## 18 Mixins [dcl.mixin]
+## 17 Mixins [dcl.mixin]
 
 [1] `mixin` is a built-in function that converts a string expression to a sequence of GAL tokens and inserts those tokens at the point of the call.
 
@@ -796,9 +879,9 @@ mixin(src);
 
 ---
 
-## 19 Control Flow [stmt]
+## 18 Control Flow [stmt]
 
-### 19.1 General [stmt.general]
+### 18.1 General [stmt.general]
 
 [1] *Syntax:*
 
@@ -831,7 +914,7 @@ mixin(src);
 
 [2] Every statement shall be terminated by `;` except *compound-statement*, *if-statement*, *while-statement*, *for-statement*, and *case-statement*.
 
-### 19.2 Selection Statements [stmt.if]
+### 18.2 Selection Statements [stmt.if]
 
 [1] *Syntax:*
 
@@ -856,7 +939,7 @@ mixin(src);
 
 [5] When an `if` statement is prefixed with `const` or `template`, all associated `elif` and `else` branches are implicitly evaluated under the same prefix.
 
-### 19.3 Iteration Statements [stmt.iter]
+### 18.3 Iteration Statements [stmt.iter]
 
 [1] *Syntax:*
 
@@ -900,7 +983,7 @@ for let e: intd, [1, 2, 3] {}
 
 ---
 
-## 20 Labels and Goto [stmt.label]
+## 19 Labels and Goto [stmt.label]
 
 [1] A label marks a location in the instruction stream. A `goto` statement transfers control unconditionally to a label or a raw address.
 
@@ -926,7 +1009,7 @@ goto 0xDEADBEEF;
 
 ---
 
-## 21 Pattern Matching [stmt.case]
+## 20 Pattern Matching [stmt.case]
 
 [1] A `case` statement is a scoped computed-goto construct. It evaluates its operand and transfers control to the matching label within its body.
 
@@ -948,41 +1031,81 @@ goto 0xDEADBEEF;
 > *case-label-expr:*
 > &nbsp;&nbsp; *expression*
 > &nbsp;&nbsp; *range-expression*
+> &nbsp;&nbsp; *variant-pattern*
 > &nbsp;&nbsp; `_`
+>
+> *variant-pattern:*
+> &nbsp;&nbsp; *qualified-variant* `(` *identifier* `)`
+> &nbsp;&nbsp; *qualified-variant*
 
 [3] `_` as a *case-label-expr* matches any value not matched by a preceding label. It is the default arm.
 
 [4] A *range-expression* as a *case-label-expr* matches any value within the specified range inclusive.
 
-[5] Fall-through does not occur implicitly. A `break` statement shall terminate each arm unless control is transferred by other means.
+[5] A *variant-pattern* matches when the active variant of the `case` operand equals the specified variant. If the variant pattern includes an *identifier* in parentheses, that identifier is bound to the inner value of the matched type variant for the duration of the arm's *statement-seq*. The bound identifier follows `let` binding semantics.
 
-[6] *Note 1: The `case` statement is built on the label and goto mechanisms ([stmt.label]). Labels within a `case` body are local to that body.*
+[6] Fall-through does not occur. Control exits the `case` statement at the end of each arm's *statement-seq* unless transferred by other means. `break` may be used to exit the `case` body early or to exit an enclosing loop from within a `case` arm.
 
-[7] A case body shall contain at most one `label _:` arm. A case body with no labels is valid and transfers control past the case statement.
+[7] *Note: The `case` statement is built on the label and goto mechanisms ([stmt.label]). Labels within a `case` body are local to that body.*
 
-[8] *Example:*
+[8] A case body shall contain at most one `label _:` arm. A case body with no labels is valid and transfers control past the case statement.
+
+[9] *Example — integer and range matching:*
 ```
 case(x)
 {
     label _:
         print("not found");
-        break;
 
     label 0 .. 10:
         print("in range");
-        break;
 
     label 42:
         print("exactly 42");
-        break;
+}
+```
+
+[10] *Example — enum value variant matching:*
+```
+type Person = enum {
+    Student = fn(): [char, _] { return "I am a student!"; },
+    Worker  = fn(): [char, _] { return "I am a worker!"; },
+};
+
+let p = Person::Student;
+
+case(p)
+{
+    label Person::Student:
+        print("student");
+    label Person::Worker:
+        print("worker");
+}
+```
+
+[11] *Example — enum type variant matching with binding:*
+```
+type Number = enum {
+    Int   = intd,
+    Float = floatd,
+};
+
+let n = Number::Int(42);
+
+case(n)
+{
+    label Number::Int(v):
+        print(v + 1);
+    label Number::Float(v):
+        print(v * 2.0);
 }
 ```
 
 ---
 
-## 22 Specialized Symbols and Operator Overloading [over]
+## 21 Specialized Symbols and Operator Overloading [over]
 
-### 22.1 General [over.general]
+### 21.1 General [over.general]
 
 [1] Specialized symbols are operators and built-in constructs that use a calling convention specific to their syntactic position rather than standard function call syntax (e.g., `a + b`, `for i, e, c {}`).
 
@@ -999,7 +1122,7 @@ fn `+`<T>(left: T, right: T): T { ... }
 fn `-`<T>(left: T, right: T): T { ... }
 ```
 
-### 22.2 `for` Overloading [over.for]
+### 21.2 `for` Overloading [over.for]
 
 [1] A type may be made iterable by overloading the `for` symbol. The overload shall accept the iterable object as its sole parameter and shall return a two-element tuple of exactly type `(T, usize)`, where `T` is the element type and `usize` is the element count. If `T` is a pointer type, elements are accessed via subscript; otherwise the value is used directly.
 
@@ -1018,9 +1141,9 @@ fn `for`(this: Data): (ptr uintb, usize)
 
 ---
 
-## 23 Scopes and Aliases [basic.scope]
+## 22 Scopes and Aliases [basic.scope]
 
-### 23.1 Scopes [basic.scope.general]
+### 22.1 Scopes [basic.scope.general]
 
 [1] A compound statement ([stmt.general]) introduces a new scope. Names declared within a scope are local to it unless marked with the visibility modifier `*`, which exports them to the immediately enclosing scope.
 
@@ -1036,7 +1159,7 @@ let x = 1;
 print(y);  // valid
 ```
 
-### 23.2 Aliases [basic.scope.alias]
+### 22.2 Aliases [basic.scope.alias]
 
 [1] An `alias` declaration introduces a new name for an existing declaration, scope, or sub-member.
 
@@ -1067,9 +1190,9 @@ x = 3;
 
 ---
 
-## 24 Import and Include [dcl.import]
+## 23 Import and Include [dcl.import]
 
-### 24.1 `include` [dcl.import.include]
+### 23.1 `include` [dcl.import.include]
 
 [1] An `include` directive is replaced textually by the contents of the named source file at the point of inclusion. All declarations in the included file become available in the current translation unit regardless of their visibility.
 
@@ -1078,7 +1201,7 @@ x = 3;
 > *include-directive:*
 > &nbsp;&nbsp; `include` *string-literal* `;`
 
-### 24.2 `import` [dcl.import.import]
+### 23.2 `import` [dcl.import.import]
 
 [1] An `import` directive makes available only those declarations in the named translation unit that carry the visibility modifier `*` ([lex.vis]).
 
@@ -1104,7 +1227,7 @@ include "A.gal";   // all declarations available
 
 ---
 
-## 25 Casts [expr.cast]
+## 24 Casts [expr.cast]
 
 [1] A cast reinterprets the bit representation of its operand as a different type. No arithmetic conversion is performed.
 
@@ -1123,7 +1246,7 @@ let c: char = cast<char>(x);
 
 ---
 
-## 26 Function Call Syntax [over.call]
+## 25 Function Call Syntax [over.call]
 
 [1] Any function whose first parameter is of type *T* may be called on a value of type *T* using member-access syntax. This is called Uniform Function Call Syntax (UFCS).
 
@@ -1145,43 +1268,54 @@ let c: char = cast<char>(x);
 
 [5] If both a field of an object and a UFCS-eligible free function share the same name for a given type, and the call is syntactically ambiguous, the program is ill-formed.
 
-[6] A method call with only one argument (the receiver) shall use parenthesized form: `expression.identifier()`. The split method form requires at least one additional argument beyond the receiver.
+[6] The parenthesized form `expression.identifier()` is required when there are no additional arguments beyond the receiver because `expression.identifier` without `(` is grammatically a field access expression and is resolved as such by the parser. The presence of `(` disambiguates a UFCS call from a field access.
 
 [7] *Example:*
 ```
 fn sum(x: intd, y: intd, z: intd): intd { return x + y + z; }
 
-let reg = sum(1, 2, 3);
-let split = sum 1, 2, 3;
-let method = 1.sum(2, 3);
+let reg         = sum(1, 2, 3);
+let split       = sum 1, 2, 3;
+let method      = 1.sum(2, 3);
 let splitmethod = 1.sum 2, 3;
 ```
 
 ---
 
-## 27 Operator Precedence [expr.prec]
+## 26 Operator Precedence [expr.prec]
 
 [1] The following table defines operator precedence from highest (1) to lowest. Operators on the same row share the same precedence. Associativity is left-to-right unless marked R (right-to-left).
 
 | Level | Operators | Associativity |
 |-------|-----------|---------------|
 | 1 | `()` `[]` `.` `->` `::` | L |
-| 2 | Unary `!` unary `-` unary `+` `cast` | R |
+| 2 | Unary `!` `~` `-` `+` `cast` | R |
 | 3 | `*` `/` `%` | L |
 | 4 | `+` `-` | L |
-| 5 | `..` | L |
+| 5 | `<<` `>>` | L |
 | 6 | `<` `>` `<=` `>=` | L |
 | 7 | `==` `!=` | L |
-| 8 | `&&` | L |
-| 9 | `\|\|` | L |
-| 10 | `\|` (union type) | L |
-| 11 | `=` `+=` `-=` `*=` `/=` `%=` | R |
+| 8 | `&` | L |
+| 9 | `^` | L |
+| 10 | `&&` | L |
+| 11 | `\|\|` | L |
+| 12 | `=` `+=` `-=` `*=` `/=` `%=` `&=` `\|=` `^=` `<<=` `>>=` | R |
+
+[2] The `|` token is context-sensitive. In an *expression* context it is bitwise OR and participates in the precedence table above between levels 9 and 10:
+
+| Level | Operators | Associativity |
+|-------|-----------|---------------|
+| 9 | `^` | L |
+| 9.5 | `\|` | L |
+| 10 | `&&` | L |
+
+[3] The `..` token is not an operator and has no precedence. It is a grammatical production valid only inside `[` `]` array literals and `case` label positions ([basic.array.range], [stmt.case]).
 
 ---
 
-## 28 Pragmas [dcl.pragma]
+## 27 Pragmas [dcl.pragma]
 
-### 28.1 General [dcl.pragma.general]
+### 27.1 General [dcl.pragma.general]
 
 [1] A pragma is a compile-time directive that provides additional information to the compiler about a declaration or statement. Pragmas do not alter the semantics of a program but may affect code generation, diagnostics, or linkage.
 
@@ -1213,11 +1347,11 @@ type Flags [.packed.] = object { ... };
 type Flags* [.packed.] = object { ... };
 fn retInt() [.inline: always.]: intd { ... }
 type Flags = object {
-  active* [.bit: set(1).]: uintb = 0,
+    active* [.bit: set(1).]: uintb = 0,
 };
 ```
 
-### 28.2 Standalone Pragmas [dcl.pragma.standalone]
+### 27.2 Standalone Pragmas [dcl.pragma.standalone]
 
 [1] The following pragmas take no arguments:
 
@@ -1229,7 +1363,7 @@ type Flags = object {
 - `[.cold.]` — hints that the function or branch is rarely executed.
 - `[.hot.]` — hints that the function or branch is frequently executed.
 
-### 28.3 Expression Pragmas [dcl.pragma.expr]
+### 27.3 Expression Pragmas [dcl.pragma.expr]
 
 [1] The following pragmas take a single expression argument:
 
@@ -1242,7 +1376,7 @@ type Flags = object {
 - `[.import("name").]` — imports the symbol by the given name from an external binary.
 - `[.convention("name").]` — sets the calling convention of the function.
 
-### 28.4 Specifier Pragmas [dcl.pragma.specifier]
+### 27.4 Specifier Pragmas [dcl.pragma.specifier]
 
 [1] The following pragmas take a specifier:
 
@@ -1255,7 +1389,7 @@ type Flags = object {
 - `[.asmStackframe: on.]` — enables compiler-generated stack frame for the function.
 - `[.asmStackframe: off.]` — disables compiler-generated stack frame.
 
-### 28.5 Specifier-Expression Pragmas [dcl.pragma.specexpr]
+### 27.5 Specifier-Expression Pragmas [dcl.pragma.specexpr]
 
 [1] The following pragmas take both a specifier and an expression:
 
@@ -1276,7 +1410,7 @@ let bitSize [.bit: get(intd).]: usize;
 
 ---
 
-## 29 Inline Assembly [stmt.asm]
+## 28 Inline Assembly [stmt.asm]
 
 [1] An `asm` statement embeds assembly instructions directly into the output at the point of use. `asm` is a specialized symbol ([over.general]) and shall not be overloaded.
 
@@ -1310,20 +1444,20 @@ asm(instr, _, _, _);
 
 ---
 
-## 30 Built-in Functions [over.reflect]
+## 29 Built-in Functions [over.reflect]
 
-### 30.1 General [over.reflect.general]
+### 29.1 General [over.reflect.general]
 
 [1] GAL provides a set of built-in functions for compile-time reflection, type querying, and code generation. Built-in functions shall not be overloaded and UFCS shall not apply to them ([over.call]).
 
-### 30.2 Identity and Stringification [over.reflect.identity]
+### 29.2 Identity and Stringification [over.reflect.identity]
 
 [1] The following built-in functions operate on identifiers and expressions as text:
 
 - `stringof(` *expr* `)` — yields *expr* as a `[char, N]` array without evaluating it.
 - `identof(` *expr* `)` — yields the identifier name of *expr* as a `[char, N]` array.
 
-### 30.3 Type Query Functions [over.reflect.type]
+### 29.3 Type Query Functions [over.reflect.type]
 
 [1] The following built-in functions query properties of types:
 
@@ -1334,26 +1468,30 @@ asm(instr, _, _, _);
 - `alignof(` *expr* `)` — yields the alignment requirement of object *expr* in bytes as a `usize`.
 - `offsetof<` *T* `>(` *field* `)` — yields the byte offset of *field* within object type *T* as a `usize`.
 
-### 30.4 Length and Field Count [over.reflect.len]
+### 29.4 Length and Field Count [over.reflect.len]
 
 [1] The following built-in functions query the element or field count of a type or value:
 
-- `lenof(` *expr* `)` — yields the element count of an array or the field count of an object or enum as a `usize`.
-- `lenof<` *T* `>()` — yields the field count of object or enum type *T* as a `usize`.
+- `lenof(` *expr* `)` — yields the element count of an array or the total field count of an object or enum (including inherited fields) as a `usize`.
+- `lenof<` *T* `>()` — yields the total field count of object or enum type *T* (including inherited fields) as a `usize`.
 
-### 30.5 Object Reflection [over.reflect.object]
+[2] Fields are counted in base-first declaration order: fields inherited from base types are counted before the fields declared directly in *T*. Within each type in the chain, fields are counted in declaration order.
+
+### 29.5 Object Reflection [over.reflect.object]
 
 [1] The following built-in functions reflect over object types:
 
-- `fieldof<` *T* `>(` *index* `)` — yields the field of type *T* at the given index as a variable; suitable for iteration and direct manipulation.
+- `fieldof<` *T* `>(` *index* `)` — yields the field of type *T* at the given index as a variable; suitable for iteration and direct manipulation. Fields are ordered base-first as described in ([over.reflect.len]). The *index* argument shall be a constant expression. The return type is the statically known declared type of the field at position *index* in *T*. If *index* is out of range, the program is ill-formed.
 
-### 30.6 Address [over.reflect.addr]
+[2] `fieldof` is primarily useful in `template for` loops where the index is a compile-time constant at each unrolled iteration.
+
+### 29.6 Address [over.reflect.addr]
 
 [1] The following built-in function yields the address of its operand:
 
 - `addrof(` *expr* `)` — yields the address of *expr* as a pointer of the appropriate type. The operand shall be an lvalue. A `const` binding shall not be used as the operand. See ([basic.compound.addr]) for full semantics.
 
-### 30.7 Code Generation [over.reflect.codegen]
+### 29.7 Code Generation [over.reflect.codegen]
 
 [1] The following built-in function inserts generated code at the point of the call:
 
@@ -1363,24 +1501,29 @@ asm(instr, _, _, _);
 ```
 type Point = object { x*: intd, y*: intd, };
 
-let s = sizeof<Point>();
-let s2 = sizeof(Point(x: 0, y: 0));
-let name = identof(s);           // "s"
-let field = fieldof<Point>(0);   // yields Point.x
-let n = lenof<Point>();          // 2
+let s     = sizeof<Point>();
+let s2    = sizeof(Point(x: 0, y: 0));
+let name  = identof(s);           // "s"
+let field = fieldof<Point>(0);    // yields Point.x
+let n     = lenof<Point>();       // 2
+
+// zeroing all fields via template for
+template for i, [0 .. lenof<Point>() - 1] {
+    fieldof<Point>(i) = 0;
+}
 
 mixin("let x = 1;");
 ```
 
 ---
 
-## 31 Value Categories [expr.cat]
+## 30 Value Categories [expr.cat]
 
-### 31.1 General [expr.cat.general]
+### 30.1 General [expr.cat.general]
 
 [1] Every expression in a GAL program belongs to exactly one value category: either *lvalue* or *rvalue*.
 
-### 31.2 Lvalues [expr.cat.lvalue]
+### 30.2 Lvalues [expr.cat.lvalue]
 
 [1] An *lvalue* is an expression that denotes a named, addressable storage location. The following expressions are lvalues:
 
@@ -1391,7 +1534,7 @@ mixin("let x = 1;");
 
 [2] A `const` binding is not an lvalue. It shall not be used as the operand of `addrof` ([basic.compound.addr]).
 
-### 31.3 Rvalues [expr.cat.rvalue]
+### 30.3 Rvalues [expr.cat.rvalue]
 
 [1] An *rvalue* is an expression that does not denote an addressable location. The following expressions are rvalues:
 
@@ -1404,15 +1547,15 @@ mixin("let x = 1;");
 
 ---
 
-## 32 Name Lookup [basic.lookup]
+## 31 Name Lookup [basic.lookup]
 
-### 32.1 General [basic.lookup.general]
+### 31.1 General [basic.lookup.general]
 
 [1] Name lookup associates a use of an identifier with its declaration. If no declaration is found, the program is ill-formed. If two declarations of the same name are found at the same scope level and do not form an overload set, the program is ill-formed.
 
-[2] A name shall be declared before its first use within the same translation unit. Forward references require an explicit forward declaration.
+[2] A name shall be declared before its first use within the same translation unit. Mutual recursion and other forward references require an explicit forward declaration ([dcl.fwd]).
 
-### 32.2 Unqualified Lookup [basic.lookup.unqual]
+### 31.2 Unqualified Lookup [basic.lookup.unqual]
 
 [1] For an unqualified name, the compiler searches scopes in the following order, stopping at the first scope in which a declaration is found:
 
@@ -1422,39 +1565,49 @@ mixin("let x = 1;");
 
 [2] A name imported via `import` ([dcl.import.import]) is visible at translation unit scope. A name introduced via `include` ([dcl.import.include]) is visible as if declared in the translation unit.
 
-### 32.3 Qualified Lookup [basic.lookup.qual]
+### 31.3 Qualified Lookup [basic.lookup.qual]
 
 [1] A qualified name of the form `S::N` looks up `N` directly within scope `S`. If `N` is not found in `S`, the program is ill-formed.
 
 [2] If two separately imported translation units both export the same name and both are visible at the point of use, the program is ill-formed.
 
-### 32.4 Function Call Lookup [basic.lookup.call]
+### 31.4 Function Call Lookup [basic.lookup.call]
 
 [1] For a UFCS call `x.f(args)` ([over.call]), the compiler first checks whether `f` is a field of the type of `x`. If found, it is treated as a field access. Otherwise, unqualified lookup is performed for a free function `f` whose first parameter type is compatible with the type of `x`. If both a field and a free function are found and the call is ambiguous, the program is ill-formed ([over.call]).
 
 ---
 
-## 33 Expressions [expr.types]
+## 32 Expressions [expr.types]
 
-### 33.1 Mixed-Type Arithmetic [expr.types.mixed]
+### 32.1 Mixed-Type Arithmetic [expr.types.mixed]
 
-[1] In a binary arithmetic expression where both operands are of integral or floating-point type and belong to the same type family, if the operands differ in width, the operand of the narrower type is implicitly promoted to the wider type before the operation is performed. The result has the wider type.
+[1] Implicit promotion occurs only between types within the same signedness family. Signed integral types (`intb`, `intw`, `intd`, `intq`, `into`, `ssize`) promote among themselves. Unsigned integral types (`uintb`, `uintw`, `uintd`, `uintq`, `uinto`, `usize`) promote among themselves. Cross-signedness arithmetic requires explicit conversion via type-as-constructor ([dcl.fct.typecast]) or `cast` ([expr.cast]).
 
-[2] The width ordering for integral types from narrowest to widest is: `b` < `w` < `d` < `q` < `o`. Signed and unsigned variants of the same width are considered the same width; if one operand is unsigned and the other signed, the result is unsigned.
+[2] In a binary arithmetic expression where both operands belong to the same signedness family and differ in width, the operand of the narrower type is implicitly promoted to the wider type before the operation is performed. The result has the wider type.
 
-[3] A floating-point type is considered wider than any integral type of equal or lesser abstract size. The width ordering for floating-point types is: `w` < `d` < `q` < `o`.
+[3] The width ordering for signed integral types from narrowest to widest is: `intb` < `intw` < `intd` < `intq` < `into`. `ssize` is treated as having the same width as `usize` for promotion ordering purposes and participates in signed promotion accordingly.
 
-[4] `bool`, `char`, and `usize` are not subject to implicit promotion. Arithmetic expressions involving these types and any other type shall use explicit type-as-constructor conversion ([dcl.fct.typecast]) or `cast` ([expr.cast]).
+[4] The width ordering for unsigned integral types from narrowest to widest is: `uintb` < `uintw` < `uintd` < `uintq` < `uinto`. `usize` participates in unsigned promotion accordingly.
 
-[5] *Example:*
+[5] A floating-point type is considered wider than any integral type of equal or lesser abstract size. The width ordering for floating-point types is: `floatw` < `floatd` < `floatq` < `floato`. Promotion between floating-point and integral types requires explicit conversion.
+
+[6] `bool` and `char` are not subject to implicit promotion. Arithmetic expressions involving these types and any other type shall use explicit type-as-constructor conversion or `cast`.
+
+[7] *Example:*
 ```
 let a: intb = 1;
 let b: intd = 2;
-let c = a + b;  // c has type intd; intb promoted to intd
+let c = a + b;          // c has type intd; intb promoted to intd
+
 let d = intd('a') + 1;  // explicit conversion required for char
+
+let e: uintb = 1;
+let f: intd  = 2;
+// let g = e + f;       // ill-formed: cross-signedness, explicit conversion required
+let g = intd(e) + f;    // valid
 ```
 
-### 33.2 Constant Expressions [expr.types.const]
+### 32.2 Constant Expressions [expr.types.const]
 
 [1] A *constant expression* is an expression that the compiler can fully evaluate at compile time. The following are ill-formed in a constant expression context:
 
@@ -1467,3 +1620,9 @@ let d = intd('a') + 1;  // explicit conversion required for char
 [2] A function call in a constant expression context is evaluated at compile time if the function body is fully evaluable at compile time, regardless of whether the function is declared `const fn`. If the body cannot be fully evaluated at compile time, the program is ill-formed.
 
 [3] `mixin` ([over.reflect.codegen]) is legal in a constant expression context.
+
+### 32.3 Integer Arithmetic [expr.types.int]
+
+[1] Signed integer overflow is undefined behavior ([intro.undef]).
+
+[2] Unsigned integer arithmetic wraps modulo 2^N where N is the bit width of the type.
