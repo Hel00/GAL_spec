@@ -3,7 +3,7 @@
 All formal grammar productions from the GAL specification, consolidated for quick reference. Section anchors are provided for each production group.
 
 Conventions:
-- *Nonterminals* are in italics in the spec; shown here in plain text with angle brackets e.g. `<type>`
+- Nonterminals are shown with angle brackets e.g. `<type>`
 - Terminals are shown in `backticks`
 - `_opt` denotes an optional element
 - `one of` lists mutually exclusive terminal alternatives
@@ -24,9 +24,10 @@ typeof   val      var      void
 
 ### Operators and Punctuators [lex.operators]
 ```
-{   }   [   ]   (   )   ::  .   ->  *
-+   -   /   %   =   +=  -=  /=  %=  ==  !=
-<   >   <=  >=  &&  ||  !   |   ..  ,   :   ;   _
+{   }   [   ]   (   )   ::  .   ->
++   -   *   /   %   =   +=  -=  *=  /=  %=  ==  !=
+<   >   <=  >=  &&  ||  !   &   |   ^   ~   <<  >>
+&=  |=  ^=  <<= >>=  ..  ,   :   ;   _   #
 ```
 
 ### Escape Sequences [lex.literal]
@@ -46,7 +47,6 @@ type:
     value-type
     array-type
     tuple-type
-    union-type
     object-type
     enum-type
     auto
@@ -96,6 +96,14 @@ type-declaration:
     type identifier visibility-modifier_opt generic-parameter-list_opt pragma_opt = type ;
 ```
 
+### Forward Declarations [dcl.fwd]
+```
+forward-declaration:
+    fn identifier visibility-modifier_opt ( parameter-list_opt ) return-type_opt ;
+    type identifier visibility-modifier_opt ;
+    declaration-keyword identifier visibility-modifier_opt : type ;
+```
+
 ---
 
 ## Wildcard and Auto [dcl.wild]
@@ -137,7 +145,7 @@ binding:
 
 ```
 array-type:
-    type [ array-size ]
+    [ type , array-size ]
 
 array-size:
     expression
@@ -147,6 +155,8 @@ range-expression:
     expression .. expression
 ```
 
+*Note: `..` is a grammatical production only. It is not an operator and has no precedence. It is valid only inside `[ ]` array literals and `case` label positions.*
+
 ---
 
 ## Pointers, References, and Values [basic.compound]
@@ -155,24 +165,11 @@ range-expression:
 pointer-type:
     ptr type-qualifier_opt type
 
-addrof-expression:
-    addrof ( expression )
-
 reference-type:
     ref type-qualifier_opt type
 
 value-type:
     val type-qualifier_opt type
-```
-
----
-
-## Unions [basic.union]
-
-```
-union-type:
-    type | type
-    type | union-type
 ```
 
 ---
@@ -192,7 +189,7 @@ field-seq:
     field field-seq
 
 field:
-    declaration-keyword_opt identifier visibility-modifier_opt pragma_opt type-annotation_opt initializer_opt ;
+    declaration-keyword_opt identifier visibility-modifier_opt pragma_opt type-annotation_opt initializer_opt ,
 ```
 
 ---
@@ -208,7 +205,14 @@ variant-seq:
     variant variant-seq
 
 variant:
-    identifier = expression ;
+    identifier = expression ,
+    identifier = type ,
+
+variant-construction-expression:
+    qualified-variant ( expression )
+
+qualified-variant:
+    identifier :: identifier
 ```
 
 ---
@@ -226,13 +230,17 @@ generic-parameter-list:
     < generic-parameter-seq >
 
 generic-parameter-seq:
-    identifier
-    identifier , generic-parameter-seq
+    generic-parameter
+    generic-parameter , generic-parameter-seq
 
 generic-parameter:
     identifier
-    identifier = type
-    identifier ...
+    identifier : generic-type
+    identifier : generic-type = type
+
+generic-type:
+    type
+    array-type
 
 parameter-list:
     parameter
@@ -392,7 +400,12 @@ case-label:
 case-label-expr:
     expression
     range-expression
+    variant-pattern
     _
+
+variant-pattern:
+    qualified-variant ( identifier )
+    qualified-variant
 ```
 
 ---
