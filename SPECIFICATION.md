@@ -1252,15 +1252,18 @@ let c: char = cast<char>(x);
 
 [2] *Syntax:*
 
-> *call:*
-> &nbsp;&nbsp; *identifier* `(` *argument-list*_opt `)` `;`
-> &nbsp;&nbsp; *identifier* *argument-list* `;`
-> &nbsp;&nbsp; *expression* `.` *identifier* *generic-parameter-list*_opt `(` *argument-list*_opt `)` `;`
-> &nbsp;&nbsp; *expression* `.` *identifier* *generic-parameter-list*_opt *argument-list* `;`
+> **call:**
 >
-> *argument-list:*
-> &nbsp;&nbsp; *expression*
-> &nbsp;&nbsp; *expression* `,` *argument-list*
+> - *identifier* *generic-parameter-list*ₒₚₜ `(` *argument-list*ₒₚₜ `)` `;`
+> - *identifier* *generic-parameter-list*ₒₚₜ *argument-list* `;`
+>
+> - *expression* `.` *identifier* *generic-parameter-list*ₒₚₜ `(` *argument-list*ₒₚₜ `)` `;`
+> - *expression* `.` *identifier* *generic-parameter-list*ₒₚₜ *argument-list* `;`
+>
+> **argument-list:**
+>
+> - *expression*
+> - *expression* `,` *argument-list*
 
 [3] `x.f(y)` is equivalent to `f(x, y)`. The value to the left of `.` is passed as the first argument.
 
