@@ -423,8 +423,8 @@ operator-overload:
 
 ```
 call:
-    identifier ( argument-list_opt ) ;
-    identifier argument-list ;
+    identifier generic-parameter-list_opt ( argument-list_opt ) ;
+    identifier generic-parameter-list_opt argument-list ;
     expression . identifier generic-parameter-list_opt ( argument-list_opt ) ;
     expression . identifier generic-parameter-list_opt argument-list ;
 
