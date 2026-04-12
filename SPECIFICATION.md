@@ -1253,9 +1253,8 @@ let c: char = cast<char>(x);
 [2] *Syntax:*
 
 > *call:*
-> &nbsp;&nbsp; *identifier* *generic-parameter-list*_opt `(` *argument-list*_opt `)` `;`
-> &nbsp;&nbsp; *identifier* *generic-parameter-list*_opt *argument-list* `;`
-> 
+> &nbsp;&nbsp; *identifier* `(` *argument-list*_opt `)` `;`
+> &nbsp;&nbsp; *identifier* *argument-list* `;`
 > &nbsp;&nbsp; *expression* `.` *identifier* *generic-parameter-list*_opt `(` *argument-list*_opt `)` `;`
 > &nbsp;&nbsp; *expression* `.` *identifier* *generic-parameter-list*_opt *argument-list* `;`
 >
