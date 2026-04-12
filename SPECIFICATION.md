@@ -1254,11 +1254,11 @@ let c: char = cast<char>(x);
 
 > **call:**
 >
-> - *identifier* *generic-parameter-list*ₒₚₜ `(` *argument-list*ₒₚₜ `)` `;`
-> - *identifier* *generic-parameter-list*ₒₚₜ *argument-list* `;`
+> - *identifier* *generic-parameter-list*_opt `(` *argument-list*ₒₚₜ `)` `;`
+> - *identifier* *generic-parameter-list*_opt *argument-list* `;`
 >
-> - *expression* `.` *identifier* *generic-parameter-list*ₒₚₜ `(` *argument-list*ₒₚₜ `)` `;`
-> - *expression* `.` *identifier* *generic-parameter-list*ₒₚₜ *argument-list* `;`
+> - *expression* `.` *identifier* *generic-parameter-list*_opt `(` *argument-list*ₒₚₜ `)` `;`
+> - *expression* `.` *identifier* *generic-parameter-list*_opt *argument-list* `;`
 >
 > **argument-list:**
 >
